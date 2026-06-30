@@ -1,0 +1,7 @@
+name: Construcción y despliegue de una aplicación MVC a Azure
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install SonarCloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner

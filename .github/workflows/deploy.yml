@@ -1,0 +1,38 @@
+name: Construcción infrastructura en Azure
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+jobs:
+  Deploy-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: login azure
+        run: | 
+          az login -u ${{ secrets.AZURE_USERNAME }} -p ${{ secrets.AZURE_PASSWORD }}
+
+      - name: Create terraform.tfvars
+        run: |
+          cd infra
+          echo "suscription_id=\"${{ secrets.SUSCRIPTION_ID }}\"" > terraform.tfvars
+          echo "sqladmin_username=\"${{ secrets.SQL_USER }}\"" >> terraform.tfvars
+          echo "sqladmin_password=\"${{ secrets.SQL_PASS }}\"" >> terraform.tfvars
+
+      - name: Setup tfsec
+        run: |
+          curl -L -o /tmp/tfsec_1.28.13_linux_amd64.tar.gz "https://github.com/aquasecurity/tfsec/releases/download/v1.28.13/tfsec_1.28.13_linux_amd64.tar.gz"
+          tar -xzvf /tmp/tfsec_1.28.13_linux_amd64.tar.gz -C /tmp
+          mv -v /tmp/tfsec /usr/local/bin/tfsec
+          chmod +x /usr/local/bin/tfsec
+      - name: tfsec
+        run: |
+          cd infra
+          /usr/local/bin/tfsec -s -f markdown > tfsec.md
+          echo "## TFSec Output" >> $GITHUB_STEP_SUMMARY
+          cat tfsec.md >> $GITHUB_STEP_SUMMARY
