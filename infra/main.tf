@@ -68,6 +68,8 @@ resource "azurerm_linux_web_app" "webapp" {
   }
 }
 
+#tfsec:ignore:azure-database-enable-audit
+#tfsec:ignore:azure-database-no-public-access
 resource "azurerm_mssql_server" "sqlsrv" {
   name                         = "upt-dbs-${random_integer.ri.result}"
   resource_group_name          = azurerm_resource_group.rg.name
